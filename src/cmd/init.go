@@ -97,7 +97,7 @@ Example:
 		}
 
 		// * Write sample presentation
-		if err := os.WriteFile(filename, []byte(samplePresentation), 0644); err != nil {
+		if err := os.WriteFile(filename, []byte(samplePresentation), 0600); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: Failed to create file %s\n", filename)
 			os.Exit(1)
 		}
