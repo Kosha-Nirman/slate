@@ -81,7 +81,7 @@ var configPathCmd = &cobra.Command{
 		path, err := loader.FindConfig()
 		if err != nil {
 			fmt.Println("No configuration file found.")
-			fmt.Println("Run 'cli-ppt config init' to create one.")
+			fmt.Println("Run 'slate config init' to create one.")
 			return
 		}
 
