@@ -1,6 +1,10 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
+	"github.com/Kosha-Nirman/slate/src/app"
 	"github.com/spf13/cobra"
 )
 
@@ -16,6 +20,12 @@ Example:
   slate present slides.md`,
 	Args: cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		filepath := args[0]
+
+		if err := app.Run(filepath); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %s\n", err.Error())
+			os.Exit(1)
+		}
 
 	},
 }
