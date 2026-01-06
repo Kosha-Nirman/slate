@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -177,7 +178,27 @@ func (l *Loader) Save(config *models.Config) error {
 }
 
 func (l *Loader) LoadFromFile(path string) (*models.Config, error) {
-	data, err := os.ReadFile(path)
+	// * Clean and validate the path
+	cleanPath := filepath.Clean(path)
+
+	// * Convert to absolute path
+	absPath, err := filepath.Abs(cleanPath)
+	if err != nil {
+		return nil, fmt.Errorf("invalid config path: %w", err)
+	}
+
+	// ? Check if file exists and is a regular file (not a directory or device)
+	info, err := os.Stat(absPath)
+	if err != nil {
+		return nil, fmt.Errorf("cannot access config file: %w", err)
+	}
+
+	if !info.Mode().IsRegular() {
+		return nil, errors.New("config path must be a regular file")
+	}
+
+	// #nosec G304 -- path is cleaned, validated, and comes from CLI argument
+	data, err := os.ReadFile(absPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
@@ -189,7 +210,6 @@ func (l *Loader) LoadFromFile(path string) (*models.Config, error) {
 
 	return &config, nil
 }
-
 func (l *Loader) Load() (*models.Config, error) {
 	// Start with default config
 	config := models.NewDefaultConfig()
