@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/Kosha-Nirman/slate/src/config"
+	"github.com/Kosha-Nirman/slate/src/display"
 	"github.com/Kosha-Nirman/slate/src/models"
 	"github.com/Kosha-Nirman/slate/src/theme"
 	tea "github.com/charmbracelet/bubbletea"
@@ -24,7 +25,8 @@ type App struct {
 	presentation *models.Presentation
 	viewMode     ViewMode
 
-	theme *theme.Manager
+	theme    *theme.Manager
+	renderer *display.Renderer
 
 	width  int
 	height int
