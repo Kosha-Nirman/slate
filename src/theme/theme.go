@@ -158,16 +158,20 @@ func (m *Manager) SetGlamourStyle(style string) {
 }
 
 func (m *Manager) ToggleMode() {
-	if m.config.Mode == ModeAuto {
-		// ? If auto, switch to explicit mode
+	switch m.config.Mode {
+	case ModeAuto:
+		// ? If auto, switch to explicit mode (opposite of current)
 		if m.isDark {
 			m.config.Mode = ModeLight
 		} else {
 			m.config.Mode = ModeDark
 		}
-	} else if m.config.Mode == ModeDark {
+	case ModeDark:
 		m.config.Mode = ModeLight
-	} else {
+	case ModeLight:
+		m.config.Mode = ModeDark
+	default:
+		// * Fallback to dark mode if unknown mode
 		m.config.Mode = ModeDark
 	}
 
@@ -175,7 +179,7 @@ func (m *Manager) ToggleMode() {
 	m.isDark = m.detectDarkMode()
 	m.colorScheme = m.createColorScheme()
 
-	// ? Update glamour style
+	// ? Update glamour style based on detected theme
 	if m.isDark {
 		m.config.GlamourStyle = GlamourDark
 	} else {

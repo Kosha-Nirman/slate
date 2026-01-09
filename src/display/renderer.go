@@ -25,7 +25,7 @@ func New(config *models.Config, width, height int) (*Renderer, error) {
 
 	// * Create glamour renderer
 	gr, err := glamour.NewTermRenderer(
-		glamour.WithAutoStyle(),
+		glamour.WithStylePath(glamourStyle),
 		glamour.WithWordWrap(config.Presentation.WordWrap),
 	)
 	if err != nil {
