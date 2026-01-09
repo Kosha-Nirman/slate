@@ -1,0 +1,132 @@
+name: Release Workflow
+
+on:
+  push:
+    tags:
+      - "v*.*.*" # Trigger the workflow when a version tag is pushed
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build and Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for proper versioning
+
+      - name: Fetch Tags
+        run: git fetch --force --tags
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install Dependencies
+        run: make install
+
+      - name: Run Tests
+        run: make test
+
+      - name: Run Linter
+        run: make lint
+
+      - name: Build Binaries for All Platforms
+        run: |
+          VERSION=${{ github.ref_name }} make build-all
+          mkdir -p dist
+          mv bin/* dist/
+
+      - name: Compress Binaries
+        run: |
+          cd dist
+          zip slate-linux-amd64.zip slate-linux-amd64
+          zip slate-linux-arm64.zip slate-linux-arm64
+          zip slate-darwin-amd64.zip slate-darwin-amd64
+          zip slate-darwin-arm64.zip slate-darwin-arm64
+          zip slate-windows-amd64.zip slate-windows-amd64.exe
+
+      - name: Generate Checksums
+        run: |
+          cd dist
+          sha256sum *.zip > checksums.txt
+
+      - name: Generate Release Notes
+        id: release-notes
+        run: |
+          echo "# Slate ${{ github.ref_name }} 🎨" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "Terminal-based presentation tool that renders markdown files as beautiful slide presentations." >> release-notes.md
+          echo "" >> release-notes.md
+          echo "## ✨ What's New" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "<!-- Add your release notes here -->" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "---" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "## 📦 Downloads" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "| Platform | Architecture | Download |" >> release-notes.md
+          echo "|----------|--------------|----------|" >> release-notes.md
+          echo "| Linux | amd64 | \`slate-linux-amd64.zip\` |" >> release-notes.md
+          echo "| Linux | arm64 | \`slate-linux-arm64.zip\` |" >> release-notes.md
+          echo "| macOS | amd64 (Intel) | \`slate-darwin-amd64.zip\` |" >> release-notes.md
+          echo "| macOS | arm64 (Apple Silicon) | \`slate-darwin-arm64.zip\` |" >> release-notes.md
+          echo "| Windows | amd64 | \`slate-windows-amd64.zip\` |" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "## 🛠 Installation" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### Quick Install" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "\`\`\`bash" >> release-notes.md
+          echo "# Download and extract (replace OS and ARCH with your system)" >> release-notes.md
+          echo "wget https://github.com/Kosha-Nirman/slate/releases/download/${{ github.ref_name }}/slate-OS-ARCH.zip" >> release-notes.md
+          echo "unzip slate-OS-ARCH.zip" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "# Make executable and move to PATH" >> release-notes.md
+          echo "chmod +x slate-OS-ARCH" >> release-notes.md
+          echo "sudo mv slate-OS-ARCH /usr/local/bin/slate" >> release-notes.md
+          echo "\`\`\`" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "### Verify Installation" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "\`\`\`bash" >> release-notes.md
+          echo "slate --version" >> release-notes.md
+          echo "\`\`\`" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "## 🚀 Quick Start" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "\`\`\`bash" >> release-notes.md
+          echo "# Create a sample presentation" >> release-notes.md
+          echo "slate init my-slides.md" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "# Present your slides" >> release-notes.md
+          echo "slate present my-slides.md" >> release-notes.md
+          echo "\`\`\`" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "## 📝 Checksums" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "See \`checksums.txt\` for SHA256 checksums of all binaries." >> release-notes.md
+          echo "" >> release-notes.md
+          echo "---" >> release-notes.md
+          echo "" >> release-notes.md
+          echo "For more information, visit the [Slate documentation](https://github.com/Kosha-Nirman/slate)." >> release-notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Slate ${{ github.ref_name }}
+          body_path: release-notes.md
+          draft: false
+          prerelease: false
+          files: |
+            dist/*.zip
+            dist/checksums.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
