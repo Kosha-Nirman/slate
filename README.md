@@ -193,6 +193,12 @@ slate config example   # Show example configuration
 
 ---
 
+## Demo
+
+![Slate Demo](demo.gif)
+
+---
+
 ## Built With
 
 - [Bubble Tea](https://github.com/charmbracelet/bubbletea) - TUI framework
